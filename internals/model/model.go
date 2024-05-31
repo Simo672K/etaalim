@@ -1,19 +1,20 @@
 package model
 
 import (
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type User struct {
 	gorm.Model
-	UniqueID string `gorm:"unique;size:255"`
-	FistName string
-	LastName string
-	Email    *string `gorm:"unique"`
-	Birthday *time.Time
-	Teacher  Teacher `gorm:"null;foreignKey:UserUID;references:ID"`
-	Student  Student `gorm:"null;foreignKey:UserUID;references:ID"`
+	UniqueID string     `json:"uniqueId" gorm:"unique;size:255"`
+	FistName string     `json:"firstName"`
+	LastName string     `json:"lastName"`
+	Email    *string    `json:"email" gorm:"unique"`
+	Birthday *time.Time `json:"birthDay"`
+	Teacher  Teacher    `gorm:"null;foreignKey:UserUID;references:ID"`
+	Student  Student    `gorm:"null;foreignKey:UserUID;references:ID"`
 }
 
 type Teacher struct {

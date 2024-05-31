@@ -1,8 +1,9 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 type Student struct {
@@ -18,4 +19,8 @@ func GetStudentsHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, students)
+}
+
+
+func CreateStudent(c *gin.Context) {
 }

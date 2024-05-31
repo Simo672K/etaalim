@@ -2,9 +2,11 @@ package routes
 
 import (
 	"ETaalim/api/handlers"
+
 	"github.com/gin-gonic/gin"
 )
 
-func StudentRoutes(r *gin.RouterGroup) {
-	r.GET("/students", handlers.GetStudentsHandler)
+func StudentRoutes(r *gin.Engine) {
+	r.GET("/student/all", handlers.GetStudentsHandler)
+	r.POST("/student/new", handlers.CreateStudent)
 }
