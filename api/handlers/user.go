@@ -12,6 +12,16 @@ import (
 
 var db = core.GetDBInstance()
 
+func GetUsers(c *gin.Context) {
+	var users []model.User
+
+	if err := db.Find(&users).Error; err != nil {
+		fmt.Println("Error while fetching data")
+	}
+
+	c.JSON(http.StatusOK, users)
+}
+
 func CreateUser(c *gin.Context) {
 	var User model.User
 	User.UniqueID = uuid.NewString()
