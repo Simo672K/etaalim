@@ -11,6 +11,7 @@ func RunServer() error {
 	r := gin.Default()
 
 	// all app routes
+	routes.AuthRoutes(r)
 	routes.StudentRoutes(r)
 	routes.UserRoutes(r)
 
