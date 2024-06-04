@@ -1,17 +1,11 @@
 package auth
 
 import (
-	"ETaalim/pkg/utils"
+	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
-
-var jwtEnv utils.EnvJwtData
-
-func init() {
-	jwtEnv.LoadEnv()
-}
 
 type JWT struct {
 	AuthData AuthTokenData
@@ -27,13 +21,14 @@ type AuthTokenData struct {
 type JWTToken interface {
 	GenerateToken() (string, error)
 	ValidateToken(string) bool
+	GetPaylodData(*jwt.Token) map[string]interface{}
 }
 
 func (t *JWT) SetTokenData(atd AuthTokenData) {
 	t.AuthData = atd
 }
 
-func (t *JWT) GenerateToken() (string, error) {
+func (t *JWT) GenerateToken(secret []byte) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"fullName": t.AuthData.FullName,
 		"uniqueId": t.AuthData.UniqueID,
@@ -41,7 +36,7 @@ func (t *JWT) GenerateToken() (string, error) {
 		"exp":      time.Now().Add(time.Hour * 24).Unix(),
 	})
 
-	tokenString, err := token.SignedString([]byte(jwtEnv.AccessTokenSecret))
+	tokenString, err := token.SignedString(secret)
 
 	if err != nil {
 		return "", err
@@ -49,7 +44,30 @@ func (t *JWT) GenerateToken() (string, error) {
 	return tokenString, nil
 }
 
-func (t *JWT) ValidateToken(token string) error {
+func (t *JWT) ValidateToken(tokenString string, secret []byte) (map[string]interface{}, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return secret, nil
+	})
 
-	return nil
+	if err != nil {
+		return nil, err
+	}
+
+	if !token.Valid {
+		return nil, fmt.Errorf("invalid token")
+	}
+	payload := t.GetPaylodData(token)
+
+	return payload, nil
+}
+
+func (t *JWT) GetPaylodData(token *jwt.Token) map[string]interface{} {
+	claims := token.Claims.(jwt.MapClaims)
+	payloadData := make(map[string]interface{})
+
+	for key, val := range claims {
+		payloadData[key] = val
+	}
+
+	return payloadData
 }
