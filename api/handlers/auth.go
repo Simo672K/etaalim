@@ -9,11 +9,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
-var jwtEnv utils.EnvJwtData
+var JwtEnv utils.EnvJwtData
 
 func init() {
-	jwtEnv.LoadEnv()
+	JwtEnv.LoadEnv()
 }
 
 func AuthLoginHandler(c *gin.Context) {
@@ -28,7 +27,7 @@ func AuthLoginHandler(c *gin.Context) {
 	jwtToken := auth.JWT{}
 	jwtToken.SetTokenData(atd)
 
-	token, err := jwtToken.GenerateToken([]byte(jwtEnv.AccessTokenSecret))
+	token, err := jwtToken.GenerateToken([]byte(JwtEnv.AccessTokenSecret))
 	if err != nil {
 		fmt.Println(err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -38,25 +37,5 @@ func AuthLoginHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"accessToken": token,
-	})
-}
-
-func AuthValidateTokenHandler(c *gin.Context) {
-	authToken := c.GetHeader("Authorization")
-	tokenString := authToken[len("Bearer "):]
-
-	jwtToken := auth.JWT{}
-	pd, err := jwtToken.ValidateToken(tokenString, []byte(jwtEnv.AccessTokenSecret))
-
-	if err != nil {
-		c.JSON(http.StatusForbidden, gin.H{
-			"message": err,
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Authenticated successfully",
-		"user":    pd,
 	})
 }
