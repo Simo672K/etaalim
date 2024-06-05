@@ -33,13 +33,25 @@ func (t *JWT) GenerateToken(secret []byte) (string, error) {
 		"fullName": t.AuthData.FullName,
 		"uniqueId": t.AuthData.UniqueID,
 		"role":     t.AuthData.Role,
-		"exp":      time.Now().Add(time.Hour * 24).Unix(),
+		"exp":      time.Now().Add(time.Second * 30).Unix(),
 	})
 
 	tokenString, err := token.SignedString(secret)
 
 	if err != nil {
 		return "", err
+	}
+	return tokenString, nil
+}
+
+func (t *JWT) GenerateRefreshToken(secret []byte) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"exp": time.Now().Add(time.Hour * 24 * 15).Unix(),
+	})
+
+	tokenString, err := token.SignedString(secret)
+	if err != nil {
+		return "", nil
 	}
 	return tokenString, nil
 }

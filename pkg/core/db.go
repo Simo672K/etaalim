@@ -2,17 +2,25 @@ package core
 
 import (
 	"fmt"
+	"os"
+	"sync"
+
+	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"sync"
 )
 
 var DB *gorm.DB
 var once sync.Once
 
 func GetDBInstance() *gorm.DB {
+	if err := godotenv.Load(); err != nil {
+		panic("Failed to load environment variables, make sure you have .env file!")
+	}
+	
 	once.Do(func() {
-		dsn := "root:123456@tcp(localhost:3306)/etaalim?charset=utf8&parseTime=True"
+		dsn := os.Getenv("MYSQL_DB_URL")
+		fmt.Println("mysql url: ", dsn)
 		db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 		if err != nil {
 			panic(fmt.Errorf("[ERROR] Failed to connect to database ->  %w", err))

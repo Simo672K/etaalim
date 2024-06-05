@@ -8,5 +8,5 @@ import (
 
 func AuthRoutes(r *gin.Engine) {
 	r.POST("/api/auth/login", handlers.AuthLoginHandler)
-	r.GET("/api/auth/validate", handlers.AuthValidateTokenHandler)
+	r.POST("/api/auth/refresh-token", handlers.AuthRefreshTokenHandler)
 }

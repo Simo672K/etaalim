@@ -3,7 +3,6 @@ package handlers
 import (
 	"ETaalim/pkg/auth"
 	"ETaalim/pkg/utils"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -27,15 +26,49 @@ func AuthLoginHandler(c *gin.Context) {
 	jwtToken := auth.JWT{}
 	jwtToken.SetTokenData(atd)
 
-	token, err := jwtToken.GenerateToken([]byte(JwtEnv.AccessTokenSecret))
+	at, err := jwtToken.GenerateToken([]byte(JwtEnv.AccessTokenSecret))
 	if err != nil {
-		fmt.Println(err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err,
 		})
+		return
+	}
+	rt, err := jwtToken.GenerateRefreshToken([]byte(JwtEnv.RefreshTokenSecret))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err,
+		})
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"accessToken": token,
+		"accessToken":  at,
+		"refreshToken": rt,
+	})
+}
+
+// Refreshing token handler
+func AuthRefreshTokenHandler(c *gin.Context) {
+	jwtToken := auth.JWT{}
+	rtString := c.GetHeader("Authorization")[len("Bearer "):]
+
+	if _, err := jwtToken.ValidateToken(rtString, []byte(JwtEnv.RefreshTokenSecret)); err != nil {
+		c.JSON(http.StatusForbidden, gin.H{
+			"message": "Expired refresh token",
+		})
+		return
+	}
+
+	at, err := jwtToken.GenerateToken([]byte(JwtEnv.AccessTokenSecret))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"accessToken":  at,
+		"refreshToken": rtString,
 	})
 }
