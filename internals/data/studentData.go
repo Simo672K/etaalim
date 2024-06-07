@@ -1,18 +1,12 @@
 package data
 
-import (
-	"ETaalim/pkg/core"
-	"gorm.io/gorm"
-)
+// "ETaalim/pkg/core"
+// "gorm.io/gorm"
 
-var DBInstance *gorm.DB
-
-func init() {
-	DBInstance = core.GetDBInstance()
-}
+// var db = core.GetDBInstance()
 
 func GetAllStudents() {
-
+	// db.Find()
 }
 
 func GetStudentByID(id string) {

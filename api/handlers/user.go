@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"ETaalim/internals/model"
+	"ETaalim/pkg/auth"
 	"ETaalim/pkg/core"
 	"fmt"
 	"net/http"
+
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -25,9 +27,17 @@ func GetUsers(c *gin.Context) {
 func CreateUser(c *gin.Context) {
 	var User model.User
 	User.UniqueID = uuid.NewString()
-
+	
 	if err := c.BindJSON(&User); err != nil {
 		fmt.Println("failed to create user")
+	}
+	
+	hashedPassword, err := auth.HashPassword(User.Password)
+	User.Password = hashedPassword
+	if err!= nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error" : err,
+		})
 	}
 
 	db.Create(&User)

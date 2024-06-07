@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	cred "ETaalim/internals/auth"
 	"ETaalim/pkg/auth"
 	"ETaalim/pkg/utils"
 	"net/http"
@@ -15,25 +16,34 @@ func init() {
 }
 
 func AuthLoginHandler(c *gin.Context) {
-	var atd auth.AuthTokenData
-	if err := c.Bind(&atd); err != nil {
+	var credentials cred.Credentials
+
+	var authTokenData *auth.AuthTokenData
+	if err := c.Bind(&credentials); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err,
 		})
 		return
 	}
 
-	jwtToken := auth.JWT{}
-	jwtToken.SetTokenData(atd)
+	authTokenData, err := credentials.LoginWithCredentials()
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error": err,
+		})
+	}
 
-	at, err := jwtToken.GenerateToken([]byte(JwtEnv.AccessTokenSecret))
+	jwtToken := auth.JWT{}
+	jwtToken.SetTokenData(*authTokenData)
+
+	accessToken, err := jwtToken.GenerateToken([]byte(JwtEnv.AccessTokenSecret))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err,
 		})
 		return
 	}
-	rt, err := jwtToken.GenerateRefreshToken([]byte(JwtEnv.RefreshTokenSecret))
+	refreshToken, err := jwtToken.GenerateRefreshToken([]byte(JwtEnv.RefreshTokenSecret))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err,
@@ -42,24 +52,24 @@ func AuthLoginHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"accessToken":  at,
-		"refreshToken": rt,
+		"accessToken":  accessToken,
+		"refreshToken": refreshToken,
 	})
 }
 
 // Refreshing token handler
 func AuthRefreshTokenHandler(c *gin.Context) {
 	jwtToken := auth.JWT{}
-	rtString := c.GetHeader("Authorization")[len("Bearer "):]
+	refreshTokenString := c.GetHeader("Authorization")[len("Bearer "):]
 
-	if _, err := jwtToken.ValidateToken(rtString, []byte(JwtEnv.RefreshTokenSecret)); err != nil {
+	if _, err := jwtToken.ValidateToken(refreshTokenString, []byte(JwtEnv.RefreshTokenSecret)); err != nil {
 		c.JSON(http.StatusForbidden, gin.H{
 			"message": "Expired refresh token",
 		})
 		return
 	}
 
-	at, err := jwtToken.GenerateToken([]byte(JwtEnv.AccessTokenSecret))
+	accessToken, err := jwtToken.GenerateToken([]byte(JwtEnv.AccessTokenSecret))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err,
@@ -68,7 +78,7 @@ func AuthRefreshTokenHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"accessToken":  at,
-		"refreshToken": rtString,
+		"accessToken":  accessToken,
+		"refreshToken": refreshTokenString,
 	})
 }
